@@ -1,0 +1,71 @@
+{% extends 'admin_base.html' %}
+{% block title %}Admin Dashboard - Spotify{% endblock %}
+{% block content %}
+<h1 class="admin-page-title">📊 Dashboard</h1>
+
+<!-- Stats -->
+<div class="stats-grid">
+  <div class="stat-card"><div class="stat-number">{{ stats.total_users }}</div><div class="stat-label">Total Users</div></div>
+  <div class="stat-card"><div class="stat-number" style="color:#1DB954;">{{ stats.active_users }}</div><div class="stat-label">Active Users</div></div>
+  <div class="stat-card"><div class="stat-number" style="color:#e22134;">{{ stats.banned_users }}</div><div class="stat-label">Banned Users</div></div>
+  <div class="stat-card"><div class="stat-number">{{ stats.total_songs }}</div><div class="stat-label">Songs</div></div>
+  <div class="stat-card"><div class="stat-number">{{ stats.total_albums }}</div><div class="stat-label">Albums</div></div>
+  <div class="stat-card"><div class="stat-number">{{ stats.total_plays }}</div><div class="stat-label">Total Plays</div></div>
+  <div class="stat-card"><div class="stat-number">{{ stats.total_playlists }}</div><div class="stat-label">Playlists</div></div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+  <!-- Recent Activity -->
+  <div>
+    <h2 style="font-size:1.1rem;font-weight:700;margin-bottom:12px;">Recent Activity</h2>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead><tr><th>User</th><th>Action</th><th>Time</th></tr></thead>
+        <tbody>
+          {% for log in recent_logins %}
+          <tr>
+            <td><strong>{{ log.username or 'admin' }}</strong></td>
+            <td><span class="badge {% if log.action=='login' %}badge-green{% elif log.action=='logout' %}badge-gray{% else %}badge-green{% endif %}">{{ log.action }}</span></td>
+            <td style="color:#aaa;font-size:0.8rem;">{{ log.timestamp[:16] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Top Songs -->
+  <div>
+    <h2 style="font-size:1.1rem;font-weight:700;margin-bottom:12px;">Top Songs</h2>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead><tr><th>Song</th><th>Artist</th><th>Plays</th></tr></thead>
+        <tbody>
+          {% for song in top_songs %}
+          <tr>
+            <td><strong>{{ song.title }}</strong></td>
+            <td style="color:#aaa;">{{ song.artist }}</td>
+            <td><span class="badge badge-green">{{ song.plays }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <h2 style="font-size:1.1rem;font-weight:700;margin:20px 0 12px;">Online Users (Recent)</h2>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead><tr><th>Username</th><th>Last Login</th></tr></thead>
+        <tbody>
+          {% for user in online_users %}
+          <tr>
+            <td><strong>{{ user.username }}</strong></td>
+            <td style="color:#aaa;font-size:0.8rem;">{{ user.last_login[:16] if user.last_login else '-' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

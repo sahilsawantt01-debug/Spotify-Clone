@@ -1,0 +1,88 @@
+{% extends 'user_base.html' %}
+{% block title %}Your Library - Spotify{% endblock %}
+{% block content %}
+<div class="library-header">
+  <h1 class="page-title">Your Library</h1>
+  <div class="library-tabs">
+    <span class="lib-tab active" onclick="showSection('playlists',this)">Playlists</span>
+    <span class="lib-tab" onclick="showSection('saved',this)">Liked Songs</span>
+  </div>
+</div>
+
+<div class="content-section">
+  <!-- Playlists -->
+  <div id="section-playlists">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h2 class="section-title">Playlists</h2>
+      <button class="btn-green" onclick="document.getElementById('createPlaylistModal').style.display='flex'"><i class="fas fa-plus"></i> New Playlist</button>
+    </div>
+    {% if playlists %}
+    <div class="cards-grid">
+      {% for pl in playlists %}
+      <div class="card" style="position:relative;">
+        <a href="{{ url_for('playlist', pid=pl.id) }}" style="text-decoration:none;display:block;">
+          <div style="width:100%;aspect-ratio:1;background:linear-gradient(135deg,#1DB954,#191414);border-radius:4px;margin-bottom:12px;display:flex;align-items:center;justify-content:center;">
+            <i class="fas fa-music" style="font-size:2.5rem;color:rgba(255,255,255,.3);"></i>
+          </div>
+          <div class="card-title">{{ pl.name }}</div>
+          <div class="card-sub">{{ pl.description or 'Playlist' }}</div>
+        </a>
+        <form action="{{ url_for('delete_playlist', pid=pl.id) }}" method="POST" style="position:absolute;top:8px;right:8px;" onsubmit="return confirm('Delete this playlist?')">
+          <button type="submit" style="background:rgba(0,0,0,.6);color:#aaa;border-radius:50%;width:28px;height:28px;font-size:0.75rem;" title="Delete"><i class="fas fa-trash"></i></button>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:80px 0;color:#aaa;">
+      <i class="fas fa-music" style="font-size:4rem;margin-bottom:16px;opacity:.3;"></i>
+      <p style="font-size:1.1rem;font-weight:600;margin-bottom:8px;">Create your first playlist</p>
+      <p style="font-size:0.9rem;">It's easy, we'll help you</p>
+      <button class="btn-green" style="margin-top:20px;" onclick="document.getElementById('createPlaylistModal').style.display='flex'">Create playlist</button>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Saved Songs -->
+  <div id="section-saved" style="display:none;">
+    <h2 class="section-title" style="margin-bottom:16px;">Liked Songs</h2>
+    {% if saved %}
+    <div class="song-list">
+      <div class="song-list-header"><span>#</span><span>Title</span><span>Artist</span><span>Genre</span><span></span><span></span></div>
+      {% for song in saved %}
+      <div class="song-row">
+        <div><span class="song-num">{{ loop.index }}</span><span class="song-play-mini" onclick="playSong({{ song.id }}, [{% for s in saved %}{{ s.id }}{% if not loop.last %},{% endif %}{% endfor %}])"><i class="fas fa-play"></i></span></div>
+        <div class="song-info">
+          <img class="song-cover" src="{{ url_for('static', filename=song.cover) }}" onerror="this.src='{{ url_for('static', filename='uploads/covers/default_cover.jpg') }}'"/>
+          <div><div class="song-name">{{ song.title }}</div><div class="song-artist-sub">{{ song.artist }}</div></div>
+        </div>
+        <div class="song-album-col">{{ song.artist }}</div>
+        <div class="song-album-col" style="color:{{ song.color or '#aaa' }}">{{ song.genre_name or '-' }}</div>
+        <div></div>
+        <div class="song-actions">
+          <button class="song-action-btn saved" onclick="fetch('/api/save_song/{{ song.id }}',{method:'POST'}).then(r=>r.json()).then(d=>{ if(!d.saved){ this.closest('.song-row').remove(); showToast('Removed from liked songs','success'); } })"><i class="fas fa-heart"></i></button>
+          <button class="song-action-btn" onclick="showAddToPlaylist({{ song.id }})"><i class="fas fa-plus"></i></button>
+          <button class="song-action-btn" onclick="playSong({{ song.id }}, [{% for s in saved %}{{ s.id }}{% if not loop.last %},{% endif %}{% endfor %}])"><i class="fas fa-play"></i></button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:80px 0;color:#aaa;">
+      <i class="fas fa-heart" style="font-size:4rem;margin-bottom:16px;opacity:.3;"></i>
+      <p style="font-size:1.1rem;font-weight:600;margin-bottom:8px;">Songs you like will appear here</p>
+      <p style="font-size:0.9rem;">Save songs by tapping the heart icon</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+function showSection(name, el) {
+  document.querySelectorAll('[id^=section-]').forEach(s=>s.style.display='none');
+  document.getElementById('section-'+name).style.display='block';
+  document.querySelectorAll('.lib-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
+</script>
+{% endblock %}

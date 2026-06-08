@@ -1,0 +1,30 @@
+{% extends 'admin_base.html' %}
+{% block title %}Login Logs - Admin{% endblock %}
+{% block content %}
+<h1 class="admin-page-title">📋 Login Activity Logs</h1>
+
+<div class="admin-table-wrap">
+  <table class="admin-table">
+    <thead>
+      <tr><th>#</th><th>Username</th><th>Action</th><th>IP Address</th><th>Timestamp</th></tr>
+    </thead>
+    <tbody>
+      {% for log in logs %}
+      <tr>
+        <td style="color:#aaa;">{{ log.id }}</td>
+        <td><strong>{{ log.username or 'admin' }}</strong></td>
+        <td>
+          <span class="badge {% if log.action=='login' or log.action=='admin_login' %}badge-green{% else %}badge-gray{% endif %}">
+            {{ log.action }}
+          </span>
+        </td>
+        <td style="color:#aaa;font-size:0.85rem;">{{ log.ip_address or '-' }}</td>
+        <td style="color:#aaa;font-size:0.85rem;">{{ log.timestamp[:19] }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" style="text-align:center;color:#aaa;padding:32px;">No activity logs yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

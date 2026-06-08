@@ -1,0 +1,120 @@
+{% extends 'user_base.html' %}
+{% block title %}Home - Spotify{% endblock %}
+{% block content %}
+<div class="home-gradient">
+  <!-- Greeting -->
+  <div class="time-greeting" id="greeting">Good evening</div>
+
+  <!-- Quick play row -->
+  {% if featured %}
+  <div class="quick-play-grid">
+    {% for song in featured[:6] %}
+    <div class="quick-card" onclick="playSong({{ song.id }}, [{% for s in featured %}{{ s.id }}{% if not loop.last %},{% endif %}{% endfor %}])">
+      <img src="{{ url_for('static', filename=song.cover) }}" alt="{{ song.title }}"
+           onerror="this.src='{{ url_for('static', filename='uploads/covers/default_cover.jpg') }}'"/>
+      <span>{{ song.title }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Featured Songs -->
+  <div class="content-section">
+    <div class="section-header">
+      <h2 class="section-title">🔥 Trending Now</h2>
+    </div>
+    <div class="cards-grid">
+      {% for song in featured %}
+      <div class="card" onclick="playSong({{ song.id }}, [{% for s in featured %}{{ s.id }}{% if not loop.last %},{% endif %}{% endfor %}])">
+        <img class="card-img" src="{{ url_for('static', filename=song.cover) }}" alt="{{ song.title }}"
+             onerror="this.src='{{ url_for('static', filename='uploads/covers/default_cover.jpg') }}'"/>
+        <div class="card-title">{{ song.title }}</div>
+        <div class="card-sub">{{ song.artist }}</div>
+        <div class="card-play"><i class="fas fa-play"></i></div>
+      </div>
+      {% else %}
+      <p style="color:#aaa;grid-column:1/-1;padding:20px 0;">No songs yet. Admin needs to upload some music!</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Genres -->
+  <div class="content-section">
+    <div class="section-header">
+      <h2 class="section-title">Browse by Category</h2>
+    </div>
+    <div class="genres-grid">
+      {% for genre in genres %}
+      <a href="{{ url_for('genre', genre_id=genre.id) }}" class="genre-card" style="background:{{ genre.color }};">
+        <span>{{ genre.name }}</span>
+        <div class="genre-icon">{{ genre.icon }}</div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Recent Albums -->
+  {% if albums %}
+  <div class="content-section">
+    <div class="section-header">
+      <h2 class="section-title">New Releases</h2>
+    </div>
+    <div class="cards-grid">
+      {% for album in albums %}
+      <a href="{{ url_for('album', album_id=album.id) }}" class="card" style="text-decoration:none;">
+        <img class="card-img" src="{{ url_for('static', filename=album.cover) }}" alt="{{ album.title }}"
+             onerror="this.src='{{ url_for('static', filename='uploads/covers/default_cover.jpg') }}'"/>
+        <div class="card-title">{{ album.title }}</div>
+        <div class="card-sub">{{ album.artist }}</div>
+        <div class="card-play" onclick="event.stopPropagation()"><i class="fas fa-play"></i></div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Recently Added -->
+  <div class="content-section">
+    <div class="section-header">
+      <h2 class="section-title">Recently Added</h2>
+    </div>
+    <div class="song-list">
+      <div class="song-list-header">
+        <span>#</span><span>Title</span><span>Artist</span><span>Genre</span><span><i class="fas fa-clock"></i></span><span></span>
+      </div>
+      {% for song in recent %}
+      <div class="song-row">
+        <div>
+          <span class="song-num">{{ loop.index }}</span>
+          <span class="song-play-mini" onclick="playSong({{ song.id }}, [{% for s in recent %}{{ s.id }}{% if not loop.last %},{% endif %}{% endfor %}])"><i class="fas fa-play"></i></span>
+        </div>
+        <div class="song-info">
+          <img class="song-cover" src="{{ url_for('static', filename=song.cover) }}" alt="{{ song.title }}"
+               onerror="this.src='{{ url_for('static', filename='uploads/covers/default_cover.jpg') }}'"/>
+          <div>
+            <div class="song-name">{{ song.title }}</div>
+            <div class="song-artist-sub">{{ song.artist }}</div>
+          </div>
+        </div>
+        <div class="song-album-col">{{ song.artist }}</div>
+        <div class="song-album-col" style="color:{{ song.color or '#aaa' }}">{{ song.genre_name or '-' }}</div>
+        <div class="song-duration">{{ '%d:%02d'|format(song.duration//60, song.duration%60) if song.duration else '-' }}</div>
+        <div class="song-actions">
+          <button class="song-action-btn" onclick="fetch('/api/save_song/{{ song.id }}',{method:'POST'}).then(r=>r.json()).then(d=>{ this.classList.toggle('saved',d.saved); this.innerHTML=d.saved?'<i class=\"fas fa-heart\"></i>':'<i class=\"far fa-heart\"></i>'; showToast(d.saved?'Saved!':'Removed','success'); })" title="Save"><i class="far fa-heart"></i></button>
+          <button class="song-action-btn" onclick="showAddToPlaylist({{ song.id }})" title="Add to playlist"><i class="fas fa-plus"></i></button>
+          <button class="song-action-btn" onclick="playSong({{ song.id }}, [{% for s in recent %}{{ s.id }}{% if not loop.last %},{% endif %}{% endfor %}])" title="Play"><i class="fas fa-play"></i></button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div style="height:32px;"></div>
+</div>
+
+<script>
+// Greeting by time
+const h = new Date().getHours();
+document.getElementById('greeting').textContent = h<12?'Good morning 🌅':h<18?'Good afternoon ☀️':'Good evening 🌙';
+</script>
+{% endblock %}

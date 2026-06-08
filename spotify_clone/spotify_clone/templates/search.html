@@ -1,0 +1,75 @@
+{% extends 'user_base.html' %}
+{% block title %}Search - Spotify{% endblock %}
+{% block content %}
+<div class="search-bar-wrap">
+  <h1 class="section-title" style="margin-bottom:16px;">Search</h1>
+  <div class="search-input-wrap">
+    <i class="fas fa-search"></i>
+    <form method="GET">
+      <input type="text" name="q" value="{{ q }}" class="search-input" placeholder="What do you want to listen to?" autofocus/>
+    </form>
+  </div>
+</div>
+
+<div class="content-section">
+{% if q %}
+  {% if songs %}
+  <h2 class="section-title" style="margin-bottom:16px;">Songs</h2>
+  <div class="song-list" style="margin-bottom:32px;">
+    <div class="song-list-header"><span>#</span><span>Title</span><span>Artist</span><span>Genre</span><span></span><span></span></div>
+    {% for song in songs %}
+    <div class="song-row">
+      <div><span class="song-num">{{ loop.index }}</span><span class="song-play-mini" onclick="playSong({{ song.id }})"><i class="fas fa-play"></i></span></div>
+      <div class="song-info">
+        <img class="song-cover" src="{{ url_for('static', filename=song.cover) }}" onerror="this.src='{{ url_for('static', filename='uploads/covers/default_cover.jpg') }}'"/>
+        <div><div class="song-name">{{ song.title }}</div><div class="song-artist-sub">{{ song.artist }}</div></div>
+      </div>
+      <div class="song-album-col">{{ song.artist }}</div>
+      <div class="song-album-col" style="color:{{ song.color or '#aaa' }}">{{ song.genre_name or '-' }}</div>
+      <div></div>
+      <div class="song-actions">
+        <button class="song-action-btn" onclick="fetch('/api/save_song/{{ song.id }}',{method:'POST'}).then(r=>r.json()).then(d=>{ this.classList.toggle('saved',d.saved); this.innerHTML=d.saved?'<i class=\"fas fa-heart\"></i>':'<i class=\"far fa-heart\"></i>'; })"><i class="far fa-heart"></i></button>
+        <button class="song-action-btn" onclick="showAddToPlaylist({{ song.id }})"><i class="fas fa-plus"></i></button>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if albums %}
+  <h2 class="section-title" style="margin-bottom:16px;">Albums</h2>
+  <div class="cards-grid" style="margin-bottom:32px;">
+    {% for album in albums %}
+    <a href="{{ url_for('album', album_id=album.id) }}" class="card" style="text-decoration:none;">
+      <img class="card-img" src="{{ url_for('static', filename=album.cover) }}" onerror="this.src='{{ url_for('static', filename='uploads/covers/default_cover.jpg') }}'"/>
+      <div class="card-title">{{ album.title }}</div>
+      <div class="card-sub">{{ album.artist }}</div>
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if genres %}
+  <h2 class="section-title" style="margin-bottom:16px;">Genres</h2>
+  <div class="genres-grid">
+    {% for genre in genres %}
+    <a href="{{ url_for('genre', genre_id=genre.id) }}" class="genre-card" style="background:{{ genre.color }};">
+      <span>{{ genre.name }}</span><div class="genre-icon">{{ genre.icon }}</div>
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if not songs and not albums and not genres %}
+  <p style="color:#aaa;text-align:center;padding:48px 0;font-size:1.1rem;">No results for "{{ q }}"</p>
+  {% endif %}
+
+{% else %}
+  <h2 class="section-title" style="margin-bottom:16px;">Browse all genres</h2>
+  <div class="genres-grid">
+    {% for genre in [] %}{% endfor %}
+  </div>
+  <p style="color:#aaa;">Start typing to search songs, artists, or albums.</p>
+{% endif %}
+</div>
+{% endblock %}

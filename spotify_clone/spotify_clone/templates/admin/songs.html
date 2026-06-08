@@ -1,0 +1,89 @@
+{% extends 'admin_base.html' %}
+{% block title %}Manage Songs - Admin{% endblock %}
+{% block content %}
+<h1 class="admin-page-title">🎵 Songs Management</h1>
+
+<!-- Upload Form -->
+<div class="admin-form-card">
+  <h2>Upload New Song</h2>
+  <form action="{{ url_for('upload_song') }}" method="POST" enctype="multipart/form-data">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Song Title *</label>
+        <input type="text" name="title" class="form-control" placeholder="Enter song title" required/>
+      </div>
+      <div class="form-group">
+        <label>Artist *</label>
+        <input type="text" name="artist" class="form-control" placeholder="Artist name" required/>
+      </div>
+      <div class="form-group">
+        <label>Genre</label>
+        <select name="genre_id" class="form-control">
+          <option value="">-- Select Genre --</option>
+          {% for g in genres %}
+          <option value="{{ g.id }}">{{ g.icon }} {{ g.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Album</label>
+        <select name="album_id" class="form-control">
+          <option value="">-- No Album --</option>
+          {% for a in albums %}
+          <option value="{{ a.id }}">{{ a.title }} – {{ a.artist }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Audio File * (mp3, wav, ogg, m4a, flac)</label>
+        <input type="file" name="audio" class="form-control" accept=".mp3,.wav,.ogg,.m4a,.flac" required/>
+      </div>
+      <div class="form-group">
+        <label>Cover Image (optional)</label>
+        <input type="file" name="cover" class="form-control" accept=".jpg,.jpeg,.png,.webp,.gif"/>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn-green"><i class="fas fa-upload"></i> Upload Song</button>
+    </div>
+  </form>
+</div>
+
+<!-- Songs Table -->
+<div class="admin-table-wrap">
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>Cover</th>
+        <th>Title</th>
+        <th>Artist</th>
+        <th>Genre</th>
+        <th>Album</th>
+        <th>Plays</th>
+        <th>Added</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for song in songs %}
+      <tr>
+        <td><img class="admin-song-cover" src="{{ url_for('static', filename=song.cover) }}" onerror="this.src='{{ url_for('static', filename='uploads/covers/default_cover.jpg') }}'"/></td>
+        <td><strong>{{ song.title }}</strong></td>
+        <td>{{ song.artist }}</td>
+        <td>{{ song.genre_name or '-' }}</td>
+        <td>{{ song.album_title or '-' }}</td>
+        <td><span class="badge badge-green">{{ song.plays }}</span></td>
+        <td style="color:#aaa;font-size:0.8rem;">{{ song.created_at[:10] }}</td>
+        <td>
+          <form class="inline-form" action="{{ url_for('delete_song', sid=song.id) }}" method="POST" onsubmit="return confirm('Delete this song?')">
+            <button type="submit" class="btn-red"><i class="fas fa-trash"></i> Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="8" style="text-align:center;color:#aaa;padding:32px;">No songs uploaded yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

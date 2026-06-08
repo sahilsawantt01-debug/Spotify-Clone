@@ -1,0 +1,54 @@
+{% extends 'user_base.html' %}
+{% block title %}{{ genre.name }} - Spotify{% endblock %}
+{% block content %}
+<div style="background: linear-gradient(180deg, {{ genre.color }}88 0%, var(--bg) 400px); min-height:100%;">
+  <div class="page-header">
+    <div style="font-size:4rem;">{{ genre.icon }}</div>
+    <div class="page-title">{{ genre.name }}</div>
+    <div class="page-subtitle">{{ songs|length }} songs · {{ albums|length }} albums</div>
+  </div>
+
+  {% if albums %}
+  <div class="content-section">
+    <div class="section-header"><h2 class="section-title">Albums</h2></div>
+    <div class="cards-grid">
+      {% for album in albums %}
+      <a href="{{ url_for('album', album_id=album.id) }}" class="card" style="text-decoration:none;">
+        <img class="card-img" src="{{ url_for('static', filename=album.cover) }}" onerror="this.src='{{ url_for('static', filename='uploads/covers/default_cover.jpg') }}'"/>
+        <div class="card-title">{{ album.title }}</div>
+        <div class="card-sub">{{ album.artist }}</div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="content-section">
+    <div class="section-header"><h2 class="section-title">Songs</h2></div>
+    {% if songs %}
+    <div class="song-list">
+      <div class="song-list-header"><span>#</span><span>Title</span><span>Artist</span><span>Album</span><span></span><span></span></div>
+      {% for song in songs %}
+      <div class="song-row">
+        <div><span class="song-num">{{ loop.index }}</span><span class="song-play-mini" onclick="playSong({{ song.id }}, [{% for s in songs %}{{ s.id }}{% if not loop.last %},{% endif %}{% endfor %}])"><i class="fas fa-play"></i></span></div>
+        <div class="song-info">
+          <img class="song-cover" src="{{ url_for('static', filename=song.cover) }}" onerror="this.src='{{ url_for('static', filename='uploads/covers/default_cover.jpg') }}'"/>
+          <div><div class="song-name">{{ song.title }}</div><div class="song-artist-sub">{{ song.artist }}</div></div>
+        </div>
+        <div class="song-album-col">{{ song.artist }}</div>
+        <div class="song-album-col">-</div>
+        <div></div>
+        <div class="song-actions">
+          <button class="song-action-btn" onclick="fetch('/api/save_song/{{ song.id }}',{method:'POST'}).then(r=>r.json()).then(d=>{ this.classList.toggle('saved',d.saved); this.innerHTML=d.saved?'<i class=\"fas fa-heart\"></i>':'<i class=\"far fa-heart\"></i>'; showToast(d.saved?'Saved!':'Removed','success'); })"><i class="far fa-heart"></i></button>
+          <button class="song-action-btn" onclick="showAddToPlaylist({{ song.id }})"><i class="fas fa-plus"></i></button>
+          <button class="song-action-btn" onclick="playSong({{ song.id }}, [{% for s in songs %}{{ s.id }}{% if not loop.last %},{% endif %}{% endfor %}])"><i class="fas fa-play"></i></button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p style="color:#aaa;">No songs in this genre yet.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

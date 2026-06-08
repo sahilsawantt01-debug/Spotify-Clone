@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>{% block title %}Spotify Clone{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+{% block head %}{% endblock %}
+</head>
+<body>
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-container">
+      {% for cat, msg in messages %}
+      <div class="flash flash-{{ cat }}">
+        <i class="fas fa-{% if cat=='success' %}check-circle{% else %}exclamation-circle{% endif %}"></i>
+        {{ msg }}
+        <button onclick="this.parentElement.remove()">x</button>
+      </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+{% block body %}{% endblock %}
+<script src="{{ url_for('static', filename='js/player.js') }}"></script>
+<script>
+function showAddToPlaylist(songId) {
+  fetch('/api/user_playlists').then(r=>r.json()).then(pls=>{
+    const d = document.getElementById('playlistChoices');
+    d.innerHTML = pls.length ? pls.map(p=>`<div class="playlist-choice" onclick="addToPlaylist(${p.id},${songId})"><i class="fas fa-music"></i> ${p.name}</div>`).join('') : '<p style="color:#aaa;padding:12px;">No playlists yet.</p>';
+    document.getElementById('addToPlaylistModal').style.display='flex';
+  });
+}
+function addToPlaylist(pid, sid) {
+  fetch('/api/add_to_playlist',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({playlist_id:pid,song_id:sid})})
+  .then(r=>r.json()).then(d=>{ document.getElementById('addToPlaylistModal').style.display='none'; showToast(d.ok?'Added to playlist!':'Already in playlist.','success'); });
+}
+function toggleSave(sid) {
+  if(!sid) return;
+  fetch(`/api/save_song/${sid}`,{method:'POST'}).then(r=>r.json()).then(d=>{
+    const btn = document.getElementById('playerHeartBtn');
+    if(btn) btn.innerHTML = d.saved ? '<i class="fas fa-heart" style="color:#1DB954"></i>' : '<i class="far fa-heart"></i>';
+    showToast(d.saved?'Saved to library':'Removed from library','success');
+  });
+}
+function showToast(msg, type='success') {
+  const t = document.createElement('div'); t.className=`toast toast-${type}`; t.textContent=msg;
+  document.body.appendChild(t); setTimeout(()=>t.classList.add('show'),10);
+  setTimeout(()=>{t.classList.remove('show'); setTimeout(()=>t.remove(),300);},2500);
+}
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.modal').forEach(m=>{ m.addEventListener('click', e=>{ if(e.target===m) m.style.display='none'; }); });
+  {% if session.get('user_id') %} loadSidebarPlaylists(); {% endif %}
+});
+function loadSidebarPlaylists() {
+  fetch('/api/user_playlists').then(r=>r.json()).then(pls=>{
+    const ul = document.getElementById('sidebarPlaylists'); if(!ul) return;
+    ul.innerHTML = pls.map(p=>`<li><a href="/playlist/${p.id}"><i class="fas fa-music"></i> ${p.name}</a></li>`).join('');
+  });
+}
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

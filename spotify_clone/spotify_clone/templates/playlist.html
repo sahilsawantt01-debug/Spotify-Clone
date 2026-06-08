@@ -1,0 +1,63 @@
+{% extends 'user_base.html' %}
+{% block title %}{{ playlist.name }} - Spotify{% endblock %}
+{% block content %}
+<div style="background: linear-gradient(180deg, #2a1a4a 0%, var(--bg) 400px); min-height:100%;">
+  <div class="playlist-header">
+    <div class="playlist-cover-img" style="background:linear-gradient(135deg,#9b59b6,#2c3e50);display:flex;align-items:center;justify-content:center;">
+      <i class="fas fa-music" style="font-size:4rem;color:rgba(255,255,255,.3);"></i>
+    </div>
+    <div>
+      <div class="album-type">PLAYLIST</div>
+      <h1 style="font-size:2.5rem;font-weight:900;letter-spacing:-1px;margin:8px 0;">{{ playlist.name }}</h1>
+      {% if playlist.description %}<p style="color:#aaa;margin-bottom:8px;">{{ playlist.description }}</p>{% endif %}
+      <div style="color:#aaa;font-size:0.88rem;">{{ playlist.username }} · {{ songs|length }} songs</div>
+    </div>
+  </div>
+
+  <div class="album-actions">
+    {% if songs %}
+    <button class="play-all-btn" onclick="playSong({{ songs[0].id }}, [{% for s in songs %}{{ s.id }}{% if not loop.last %},{% endif %}{% endfor %}])">
+      <i class="fas fa-play"></i>
+    </button>
+    {% endif %}
+  </div>
+
+  <div class="content-section">
+    {% if songs %}
+    <div class="song-list">
+      <div class="song-list-header"><span>#</span><span>Title</span><span>Artist</span><span>Genre</span><span>Added</span><span></span></div>
+      {% for song in songs %}
+      <div class="song-row">
+        <div><span class="song-num">{{ loop.index }}</span><span class="song-play-mini" onclick="playSong({{ song.id }}, [{% for s in songs %}{{ s.id }}{% if not loop.last %},{% endif %}{% endfor %}])"><i class="fas fa-play"></i></span></div>
+        <div class="song-info">
+          <img class="song-cover" src="{{ url_for('static', filename=song.cover) }}" onerror="this.src='{{ url_for('static', filename='uploads/covers/default_cover.jpg') }}'"/>
+          <div><div class="song-name">{{ song.title }}</div><div class="song-artist-sub">{{ song.artist }}</div></div>
+        </div>
+        <div class="song-album-col">{{ song.artist }}</div>
+        <div class="song-album-col">{{ song.genre_name or '-' }}</div>
+        <div class="song-album-col">{{ song.added_at[:10] if song.added_at else '-' }}</div>
+        <div class="song-actions">
+          <button class="song-action-btn" onclick="removeFromPl({{ playlist.id }}, {{ song.id }}, this)" title="Remove"><i class="fas fa-minus-circle"></i></button>
+          <button class="song-action-btn" onclick="playSong({{ song.id }}, [{% for s in songs %}{{ s.id }}{% if not loop.last %},{% endif %}{% endfor %}])"><i class="fas fa-play"></i></button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:80px 0;color:#aaa;">
+      <i class="fas fa-music" style="font-size:4rem;margin-bottom:16px;opacity:.3;"></i>
+      <p>This playlist is empty. Add songs from the home or search page.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+<script>
+function removeFromPl(pid, sid, btn) {
+  fetch('/api/remove_from_playlist',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({playlist_id:pid,song_id:sid})})
+  .then(r=>r.json()).then(d=>{
+    if(d.ok){ btn.closest('.song-row').remove(); showToast('Removed from playlist','success'); }
+  });
+}
+</script>
+{% endblock %}

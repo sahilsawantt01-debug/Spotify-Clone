@@ -1,0 +1,66 @@
+{% extends 'admin_base.html' %}
+{% block title %}Manage Users - Admin{% endblock %}
+{% block content %}
+<h1 class="admin-page-title">👥 User Management</h1>
+
+<div style="display:flex;gap:16px;margin-bottom:24px;">
+  <div class="stat-card" style="flex:1;"><div class="stat-number">{{ users|length }}</div><div class="stat-label">Total Users</div></div>
+  <div class="stat-card" style="flex:1;"><div class="stat-number" style="color:#1DB954;">{{ users|selectattr('is_banned','equalto',0)|list|length }}</div><div class="stat-label">Active</div></div>
+  <div class="stat-card" style="flex:1;"><div class="stat-number" style="color:#e22134;">{{ users|selectattr('is_banned','equalto',1)|list|length }}</div><div class="stat-label">Banned</div></div>
+</div>
+
+<div class="admin-table-wrap">
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Status</th>
+        <th>Playlists</th>
+        <th>Saved Songs</th>
+        <th>Logins</th>
+        <th>Joined</th>
+        <th>Last Login</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+      <tr>
+        <td style="color:#aaa;">{{ user.id }}</td>
+        <td><strong>{{ user.username }}</strong></td>
+        <td style="color:#aaa;font-size:0.85rem;">{{ user.email }}</td>
+        <td>
+          {% if user.is_banned %}
+          <span class="badge badge-red">Banned</span>
+          {% else %}
+          <span class="badge badge-green">Active</span>
+          {% endif %}
+        </td>
+        <td>{{ user.playlist_count }}</td>
+        <td>{{ user.saved_count }}</td>
+        <td>{{ login_counts.get(user.username, 0) }}</td>
+        <td style="color:#aaa;font-size:0.8rem;">{{ user.created_at[:10] }}</td>
+        <td style="color:#aaa;font-size:0.8rem;">{{ user.last_login[:16] if user.last_login else 'Never' }}</td>
+        <td>
+          {% if user.is_banned %}
+          <form class="inline-form" action="{{ url_for('ban_user', uid=user.id) }}" method="POST">
+            <input type="hidden" name="action" value="unban"/>
+            <button type="submit" class="btn-green" style="padding:6px 14px;font-size:0.8rem;"><i class="fas fa-check"></i> Unban</button>
+          </form>
+          {% else %}
+          <form class="inline-form" action="{{ url_for('ban_user', uid=user.id) }}" method="POST" onsubmit="return confirm('Ban user {{ user.username }}?')">
+            <input type="hidden" name="action" value="ban"/>
+            <button type="submit" class="btn-red"><i class="fas fa-ban"></i> Ban</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="10" style="text-align:center;color:#aaa;padding:32px;">No users registered yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

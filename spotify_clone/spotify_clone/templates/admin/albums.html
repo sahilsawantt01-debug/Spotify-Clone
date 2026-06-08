@@ -1,0 +1,75 @@
+{% extends 'admin_base.html' %}
+{% block title %}Manage Albums - Admin{% endblock %}
+{% block content %}
+<h1 class="admin-page-title">💿 Albums Management</h1>
+
+<!-- Add Album Form -->
+<div class="admin-form-card">
+  <h2>Add New Album</h2>
+  <form action="{{ url_for('add_album') }}" method="POST" enctype="multipart/form-data">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Album Title *</label>
+        <input type="text" name="title" class="form-control" placeholder="Album title" required/>
+      </div>
+      <div class="form-group">
+        <label>Artist *</label>
+        <input type="text" name="artist" class="form-control" placeholder="Artist name" required/>
+      </div>
+      <div class="form-group">
+        <label>Genre</label>
+        <select name="genre_id" class="form-control">
+          <option value="">-- Select Genre --</option>
+          {% for g in genres %}
+          <option value="{{ g.id }}">{{ g.icon }} {{ g.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Release Year</label>
+        <input type="number" name="release_year" class="form-control" placeholder="e.g. 2024" min="1900" max="2030"/>
+      </div>
+      <div class="form-group" style="grid-column:1/-1;">
+        <label>Description</label>
+        <input type="text" name="description" class="form-control" placeholder="Album description (optional)"/>
+      </div>
+      <div class="form-group">
+        <label>Cover Image</label>
+        <input type="file" name="cover" class="form-control" accept=".jpg,.jpeg,.png,.webp"/>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn-green"><i class="fas fa-plus"></i> Add Album</button>
+    </div>
+  </form>
+</div>
+
+<!-- Albums Table -->
+<div class="admin-table-wrap">
+  <table class="admin-table">
+    <thead>
+      <tr><th>Cover</th><th>Title</th><th>Artist</th><th>Genre</th><th>Year</th><th>Songs</th><th>Created</th><th>Action</th></tr>
+    </thead>
+    <tbody>
+      {% for album in albums %}
+      <tr>
+        <td><img class="admin-song-cover" src="{{ url_for('static', filename=album.cover) }}" onerror="this.src='{{ url_for('static', filename='uploads/covers/default_cover.jpg') }}'"/></td>
+        <td><strong>{{ album.title }}</strong></td>
+        <td>{{ album.artist }}</td>
+        <td>{{ album.genre_name or '-' }}</td>
+        <td>{{ album.release_year or '-' }}</td>
+        <td><span class="badge badge-green">{{ album.song_count }}</span></td>
+        <td style="color:#aaa;font-size:0.8rem;">{{ album.created_at[:10] }}</td>
+        <td>
+          <form class="inline-form" action="{{ url_for('delete_album', aid=album.id) }}" method="POST" onsubmit="return confirm('Delete this album? Songs will stay but lose album link.')">
+            <button type="submit" class="btn-red"><i class="fas fa-trash"></i> Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="8" style="text-align:center;color:#aaa;padding:32px;">No albums yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block body %}
+<!-- USER LAYOUT -->
+<div class="app-wrapper">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <svg viewBox="0 0 24 24" fill="#1DB954" width="38" height="38"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+      <span>Spotify</span>
+    </div>
+    <ul class="sidebar-nav">
+      <li><a href="{{ url_for('home') }}" class="{% if request.endpoint=='home' %}active{% endif %}"><i class="fas fa-home"></i> Home</a></li>
+      <li><a href="{{ url_for('search') }}" class="{% if request.endpoint=='search' %}active{% endif %}"><i class="fas fa-search"></i> Search</a></li>
+      <li><a href="{{ url_for('library') }}" class="{% if request.endpoint=='library' %}active{% endif %}"><i class="fas fa-book"></i> Your Library</a></li>
+    </ul>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+      <button class="create-playlist-btn" onclick="document.getElementById('createPlaylistModal').style.display='flex'">
+        <i class="fas fa-plus"></i> Create Playlist
+      </button>
+    </div>
+    <ul class="playlist-list" id="sidebarPlaylists"></ul>
+    <div class="sidebar-user">
+      <div class="user-avatar"><i class="fas fa-user-circle"></i></div>
+      <span>{{ session.username }}</span>
+      <a href="{{ url_for('logout') }}" class="logout-btn"><i class="fas fa-sign-out-alt"></i></a>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    {% block content %}{% endblock %}
+  </main>
+</div>
+
+<!-- Player Bar -->
+<div class="player-bar" id="playerBar">
+  <div class="player-info">
+    <img id="playerCover" src="{{ url_for('static', filename='uploads/covers/default_cover.jpg') }}" alt="cover"/>
+    <div>
+      <div id="playerTitle" class="player-title">-</div>
+      <div id="playerArtist" class="player-artist">-</div>
+    </div>
+    <button class="heart-btn" id="playerHeartBtn" onclick="toggleSave(currentSongId)"><i class="far fa-heart"></i></button>
+  </div>
+  <div class="player-controls">
+    <button onclick="prevSong()"><i class="fas fa-backward"></i></button>
+    <button class="play-pause-main" id="playPauseBtn" onclick="togglePlay()"><i class="fas fa-play"></i></button>
+    <button onclick="nextSong()"><i class="fas fa-forward"></i></button>
+  </div>
+  <div class="player-progress">
+    <span id="currentTime">0:00</span>
+    <input type="range" id="progressBar" value="0" max="100" oninput="seek(this.value)"/>
+    <span id="totalTime">0:00</span>
+    <i class="fas fa-volume-up volume-icon"></i>
+    <input type="range" id="volumeBar" value="80" max="100" oninput="setVolume(this.value)"/>
+  </div>
+</div>
+
+<!-- Create Playlist Modal -->
+<div class="modal" id="createPlaylistModal">
+  <div class="modal-content">
+    <h2>Create Playlist</h2>
+    <form action="{{ url_for('create_playlist') }}" method="POST">
+      <input type="text" name="name" placeholder="Playlist name" required class="modal-input"/>
+      <textarea name="description" placeholder="Description (optional)" class="modal-input"></textarea>
+      <div class="modal-actions">
+        <button type="button" onclick="document.getElementById('createPlaylistModal').style.display='none'" class="btn-ghost">Cancel</button>
+        <button type="submit" class="btn-green">Create</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Add to Playlist Modal -->
+<div class="modal" id="addToPlaylistModal">
+  <div class="modal-content">
+    <h2>Add to Playlist</h2>
+    <div id="playlistChoices"></div>
+    <div class="modal-actions">
+      <button onclick="document.getElementById('addToPlaylistModal').style.display='none'" class="btn-ghost">Cancel</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
